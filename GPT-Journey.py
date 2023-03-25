@@ -96,8 +96,23 @@ def home():
         # Generate a chat response with an initial message ("Begin")
         reply_content, message_history = chat("Begin", message_history)
         
+        # get the text before the scene description
+        pretext = reply_content.split("]=-")[0]
+        
         # Extract the text from the response
-        text = reply_content.split("Option 1")[0]
+        #text = reply_content.split("Option 1")[0]
+    
+        try:
+            # Extract the text from the response
+            text = reply_content.split("Option 1")[0]
+            # Extract text from between ]=- and Option 1
+            scenetext = reply_content.split("]=-")[1].split("Option 1")[0]
+        except IndexError:
+            print("Error: 'Option 1' or ']=-'' not found in reply_content")
+            # Handle the error here (e.g. assign default values to text and scenetext)
+
+
+
 
         # Using regex, grab the natural language options from the response
         options = re.findall(r"Option \d:.*", reply_content)
@@ -155,7 +170,8 @@ def home():
 
     # Generate an image based on the chat response text   
     
-    img_url = get_img(text)
+    #img_url = get_img(text)
+    img_url = get_img(scenetext)
     #print(img_url)
     #image_url = image_url["images"][0]
     #print(image_url)

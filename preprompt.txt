@@ -4,4 +4,4 @@ When you present the story and options,
  present just the story and start immediately with the story,
  no further commentary, list options like "Option 1:" "Option 2:" ...etc.
 
-Prepend each response with the users Hitpoints, Movement, and Magic like "HP: 100/100 MOVE: 80/100 MANA:40/50 TERRAIN:ROCKY WEATHER:CLOUDY TIME:MORNING"
+Prepend each response with the users Hitpoints, Movement, and Magic like "-=[HP: 100/100 MOVE: 80/100 MANA:40/50 TERRAIN:ROCKY WEATHER:CLOUDY TIME:MORNING ]=-"
