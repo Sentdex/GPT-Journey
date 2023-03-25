@@ -10,7 +10,7 @@ openai.api_key = open("key.txt", "r").read().strip("\n")
 
 # Create a new Flask app and set the secret key
 app = Flask(__name__)
-app.secret_key = "blisshammocks"
+app.secret_key = "mysecretkey"
 
 # Define a function to generate an image using the OpenAI API
 def get_img(prompt):
