@@ -8,7 +8,7 @@
 <body>
     <div class="container">
         <h1 class="mt-5">{{ title }}</h1>
-        <img src="{{ image_url }}" class="img-fluid" alt="My Image">
+        <img src="data:img/png;base64,{{ image_url }}" class="img-fluid" alt="My Image">
         <p>{{ text }}</p>
         {% for button_name, message in button_messages.items() %}
             <form method="POST">

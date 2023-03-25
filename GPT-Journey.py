@@ -4,9 +4,15 @@ from flask import Flask, render_template, request, session
 import openai
 # Regular expressions:
 import re
+import requests
+import json
+from PIL import Image
+import io
+import base64
 
 # Set the OpenAI API key
 openai.api_key = open("key.txt", "r").read().strip("\n")
+url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 
 # Create a new Flask app and set the secret key
 app = Flask(__name__)
@@ -14,17 +20,33 @@ app.secret_key = "mysecretkey"
 
 # Define a function to generate an image using the OpenAI API
 def get_img(prompt):
+    img_url = None
     try:
-        response = openai.Image.create(
-            prompt=prompt,
-            n=1,
-            size="512x512"
-            )
-        img_url = response.data[0].url
+        payload = json.dumps({
+        "prompt": prompt,
+        "steps": 12
+        })
+        headers = {
+        'Content-Type': 'application/json'
+        }
+        response = requests.request("POST", url, headers=headers, data=payload)
+        r = response.json()
+        print(r)
+        print("Hello world")
+        image_64 = r["images"][0]
+        #for i in r['images']:
+        #image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
+        #img_url = Image.open(io.BytesIO(base64.b64decode(image_64)))
+        img_url = image_64
+        
     except Exception as e:
         # if it fails (e.g. if the API detects an unsafe image), use a default image
         img_url = "https://pythonprogramming.net/static/images/imgfailure.png"
+        print(e)
+        
     return img_url
+
+
 
 
 # Define a function to generate a chat response using the OpenAI API
@@ -123,11 +145,15 @@ def home():
     session['message_history'] = message_history
     session['button_messages'] = button_messages
 
-    # Generate an image based on the chat response text    
-    image_url = get_img(text)
-
+    # Generate an image based on the chat response text   
+    
+    img_url = get_img(text)
+    print(img_url)
+    #image_url = image_url["images"][0]
+    #print(image_url)
+    
     # Render the template with the updated information
-    return render_template('home.html', title=title, text=text, image_url=image_url, button_messages=button_messages, button_states=button_states, message=message)
+    return render_template('home.html', title=title, text=text, image_url=img_url, button_messages=button_messages, button_states=button_states, message=message)
 
 # Run the Flask app
 if __name__ == '__main__':
