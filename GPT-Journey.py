@@ -12,6 +12,9 @@ import base64
 
 # Set the OpenAI API key
 openai.api_key = open("key.txt", "r").read().strip("\n")
+preprompt = open("preprompt.txt", "r").read().strip("\n")
+
+
 url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 
 # Create a new Flask app and set the secret key
@@ -31,8 +34,7 @@ def get_img(prompt):
         }
         response = requests.request("POST", url, headers=headers, data=payload)
         r = response.json()
-        print(r)
-        print("Hello world")
+        #print(r)
         image_64 = r["images"][0]
         #for i in r['images']:
         #image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
@@ -85,7 +87,7 @@ def home():
     if request.method == 'GET':
 
         # Initialize the message history
-        session['message_history'] = [{"role": "user", "content": """You are an interactive story game bot that proposes some hypothetical fantastical situation where the user needs to pick from 2-4 options that you provide. Once the user picks one of those options, you will then state what happens next and present new options, and this then repeats. If you understand, say, OK, and begin when I say "begin." When you present the story and options, present just the story and start immediately with the story, no further commentary, and then options like "Option 1:" "Option 2:" ...etc."""},
+        session['message_history'] = [{"role": "user", "content": preprompt},
                                       {"role": "assistant", "content": f"""OK, I understand. Begin when you're ready."""}]
         
         # Retrieve the message history from the session
@@ -129,11 +131,17 @@ def home():
 
         # Generate a chat response with the clicked message
         reply_content, message_history = chat(message, message_history)
-
+        print(reply_content)
+        
         # Extract the text and options from the response
         text = reply_content.split("Option 1")[0]
         options = re.findall(r"Option \d:.*", reply_content)
 
+        # Extract the alttext and options from the response
+        alttext = reply_content.split("Alt Img Text")[0]
+        altoptions = re.findall(r"Alt Img Text \d:.*", reply_content)
+        print (altoptions)
+        
         # Update the button messages and states
         button_messages = {}
         for i, option in enumerate(options):
@@ -148,12 +156,12 @@ def home():
     # Generate an image based on the chat response text   
     
     img_url = get_img(text)
-    print(img_url)
+    #print(img_url)
     #image_url = image_url["images"][0]
     #print(image_url)
     
     # Render the template with the updated information
-    return render_template('home.html', title=title, text=text, image_url=img_url, button_messages=button_messages, button_states=button_states, message=message)
+    return render_template('home.html', title=title, text=text, image_url=img_url, button_messages=button_messages, button_states=button_states, message=message, altoptions=altoptions)
 
 # Run the Flask app
 if __name__ == '__main__':
