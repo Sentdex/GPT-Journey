@@ -138,9 +138,9 @@ def home():
         options = re.findall(r"Option \d:.*", reply_content)
 
         # Extract the alttext and options from the response
-        alttext = reply_content.split("Alt Img Text")[0]
-        altoptions = re.findall(r"Alt Img Text \d:.*", reply_content)
-        print (altoptions)
+        #alttext = reply_content.split("Alt Img Text")[0]
+        #altoptions = re.findall(r"Alt Img Text \d:.*", reply_content)
+        #print (altoptions)
         
         # Update the button messages and states
         button_messages = {}
@@ -161,7 +161,7 @@ def home():
     #print(image_url)
     
     # Render the template with the updated information
-    return render_template('home.html', title=title, text=text, image_url=img_url, button_messages=button_messages, button_states=button_states, message=message, altoptions=altoptions)
+    return render_template('home.html', title=title, text=text, image_url=img_url, button_messages=button_messages, button_states=button_states, message=message)
 
 # Run the Flask app
 if __name__ == '__main__':
