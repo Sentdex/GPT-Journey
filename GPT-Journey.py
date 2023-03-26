@@ -104,14 +104,13 @@ def home():
     
         try:
             # Extract the text from the response
-            text = reply_content.split("Option 1")[0]
+            scenetext = reply_content.split("Option 1")[0] #everything but options
             # Extract text from between ]=- and Option 1
-            scenetext = reply_content.split("]=-")[1].split("Option 1")[0]
+            text = reply_content.split("]=-")[0].split("Option 1")[0] #hp and stuff
+            paragraph = reply_content.split("=-")[1].split("Option 1:")[0].strip() #words for scene
         except IndexError:
             print("Error: 'Option 1' or ']=-'' not found in reply_content")
             # Handle the error here (e.g. assign default values to text and scenetext)
-
-
 
 
         # Using regex, grab the natural language options from the response
@@ -169,15 +168,56 @@ def home():
     session['button_messages'] = button_messages
 
     # Generate an image based on the chat response text   
+    try:
+        # Extract the text from the response
+        scenetext = reply_content.split("Option 1")[0] #everything but options
+        # Extract text from between ]=- and Option 1
+        text = reply_content.split("]=-")[0].split("Option 1")[0] #hp and stuff
+        paragraph = reply_content.split("=-")[1].split("Option 1:")[0].strip() #words for scene
+    except IndexError:
+        print("Error: 'Option 1' or ']=-'' not found in reply_content")
+        # Handle the error here (e.g. assign default values to text and scenetext)    
+
     
     #img_url = get_img(text)
-    img_url = get_img(scenetext)
+    
+    print("paragraph")
+    print(paragraph)
+    print("scenetext")
+    print(scenetext)
+    print("---")
+    print("text")
+    print(text)
+    
+    data = text.split('=')[1]
+
+    values = data.split()
+    if len(values) == 6:
+        # assign variables to each value
+        hp, move, mana, terrain, weather, time = values
+
+        # print the variables
+        print("HP:", hp)
+        print("MOVE:", move)
+        print("MANA:", mana)
+        print("TERRAIN:", terrain)
+        print("WEATHER:", weather)
+        print("TIME:", time)
+    else:
+        print("Error: Data string does not contain exactly 6 values.")
+        print(len(values))
+        print(values)
+    
+    mine = paragraph + f" The {terrain}, the {weather}, and the {time}."
+    img_url = get_img(mine)
+    print(mine)
+    
     #print(img_url)
     #image_url = image_url["images"][0]
     #print(image_url)
     
     # Render the template with the updated information
-    return render_template('home.html', title=title, text=text, image_url=img_url, button_messages=button_messages, button_states=button_states, message=message)
+    return render_template('home.html', title=title, text=text, image_url=img_url, button_messages=button_messages, button_states=button_states, message=message,paragraph=paragraph)
 
 # Run the Flask app
 if __name__ == '__main__':
