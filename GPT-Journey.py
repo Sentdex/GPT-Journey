@@ -17,6 +17,16 @@ preprompt = open("preprompt.txt", "r").read().strip("\n")
 
 url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 
+message = ""
+hp = ""
+move = ""
+terrain = ""
+weather = ""
+time = ""
+year = ""
+planet = ""
+inside = ""
+
 # Create a new Flask app and set the secret key
 app = Flask(__name__)
 app.secret_key = "mysecretkey"
@@ -27,7 +37,8 @@ def get_img(prompt):
     try:
         payload = json.dumps({
         "prompt": prompt,
-        "steps": 12
+        "steps": 42, 
+        "cfg_scale":4.5
         })
         headers = {
         'Content-Type': 'application/json'
@@ -77,8 +88,7 @@ def chat(inp, message_history, role="user"):
 @app.route('/', methods=['GET', 'POST'])
 def home():
     # Page's title:
-    title = "GPT-Journey"
-    
+    title = "GPT-Stable Odyssey"
     # Initialize the button messages and button states dictionaries
     button_messages = {}
     button_states = {}
@@ -192,23 +202,25 @@ def home():
     data = text.split('=')[1]
 
     values = data.split()
-    if len(values) == 6:
+    if len(values) == 8:
         # assign variables to each value
-        hp, move, mana, terrain, weather, time = values
+        hp, move, terrain, weather, time, year, planet, inside = values
 
         # print the variables
         print("HP:", hp)
         print("MOVE:", move)
-        print("MANA:", mana)
         print("TERRAIN:", terrain)
         print("WEATHER:", weather)
         print("TIME:", time)
+        print("YEAR:", year)
+        print("PLANET:", planet)
+        print("INSIDE:", inside)
     else:
-        print("Error: Data string does not contain exactly 6 values.")
+        print("Error: Data string does not contain exactly 8 values.")
         print(len(values))
         print(values)
     
-    mine = paragraph + f" The {terrain}, the {weather}, and the {time}."
+    mine = paragraph + f" The weather is {weather}, in the {time}, of the year {year} on the planet {planet} with a {terrain} terrain."
     img_url = get_img(mine)
     print(mine)
     
@@ -216,6 +228,7 @@ def home():
     #image_url = image_url["images"][0]
     #print(image_url)
     
+
     # Render the template with the updated information
     return render_template('home.html', title=title, text=text, image_url=img_url, button_messages=button_messages, button_states=button_states, message=message,paragraph=paragraph)
 
