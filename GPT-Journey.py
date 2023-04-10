@@ -4,9 +4,28 @@ from flask import Flask, render_template, request, session
 import openai
 # Regular expressions:
 import re
+import requests
+import json
+from PIL import Image
+import io
+import base64
 
 # Set the OpenAI API key
 openai.api_key = open("key.txt", "r").read().strip("\n")
+preprompt = open("preprompt.txt", "r").read().strip("\n")
+
+
+url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
+
+message = ""
+hp = ""
+move = ""
+terrain = ""
+weather = ""
+time = ""
+year = ""
+planet = ""
+inside = ""
 
 # Create a new Flask app and set the secret key
 app = Flask(__name__)
@@ -14,17 +33,33 @@ app.secret_key = "mysecretkey"
 
 # Define a function to generate an image using the OpenAI API
 def get_img(prompt):
+    img_url = None
     try:
-        response = openai.Image.create(
-            prompt=prompt,
-            n=1,
-            size="512x512"
-            )
-        img_url = response.data[0].url
+        payload = json.dumps({
+        "prompt": prompt,
+        "steps": 42, 
+        "cfg_scale":4.5
+        })
+        headers = {
+        'Content-Type': 'application/json'
+        }
+        response = requests.request("POST", url, headers=headers, data=payload)
+        r = response.json()
+        #print(r)
+        image_64 = r["images"][0]
+        #for i in r['images']:
+        #image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
+        #img_url = Image.open(io.BytesIO(base64.b64decode(image_64)))
+        img_url = image_64
+        
     except Exception as e:
         # if it fails (e.g. if the API detects an unsafe image), use a default image
         img_url = "https://pythonprogramming.net/static/images/imgfailure.png"
+        print(e)
+        
     return img_url
+
+
 
 
 # Define a function to generate a chat response using the OpenAI API
@@ -53,8 +88,7 @@ def chat(inp, message_history, role="user"):
 @app.route('/', methods=['GET', 'POST'])
 def home():
     # Page's title:
-    title = "GPT-Journey"
-    
+    title = "GPT-Stable Odyssey"
     # Initialize the button messages and button states dictionaries
     button_messages = {}
     button_states = {}
@@ -63,7 +97,7 @@ def home():
     if request.method == 'GET':
 
         # Initialize the message history
-        session['message_history'] = [{"role": "user", "content": """You are an interactive story game bot that proposes some hypothetical fantastical situation where the user needs to pick from 2-4 options that you provide. Once the user picks one of those options, you will then state what happens next and present new options, and this then repeats. If you understand, say, OK, and begin when I say "begin." When you present the story and options, present just the story and start immediately with the story, no further commentary, and then options like "Option 1:" "Option 2:" ...etc."""},
+        session['message_history'] = [{"role": "user", "content": preprompt},
                                       {"role": "assistant", "content": f"""OK, I understand. Begin when you're ready."""}]
         
         # Retrieve the message history from the session
@@ -72,8 +106,22 @@ def home():
         # Generate a chat response with an initial message ("Begin")
         reply_content, message_history = chat("Begin", message_history)
         
+        # get the text before the scene description
+        pretext = reply_content.split("]=-")[0]
+        
         # Extract the text from the response
-        text = reply_content.split("Option 1")[0]
+        #text = reply_content.split("Option 1")[0]
+    
+        try:
+            # Extract the text from the response
+            scenetext = reply_content.split("Option 1")[0] #everything but options
+            # Extract text from between ]=- and Option 1
+            text = reply_content.split("]=-")[0].split("Option 1")[0] #hp and stuff
+            paragraph = reply_content.split("=-")[1].split("Option 1:")[0].strip() #words for scene
+        except IndexError:
+            print("Error: 'Option 1' or ']=-'' not found in reply_content")
+            # Handle the error here (e.g. assign default values to text and scenetext)
+
 
         # Using regex, grab the natural language options from the response
         options = re.findall(r"Option \d:.*", reply_content)
@@ -107,11 +155,17 @@ def home():
 
         # Generate a chat response with the clicked message
         reply_content, message_history = chat(message, message_history)
-
+        print(reply_content)
+        
         # Extract the text and options from the response
         text = reply_content.split("Option 1")[0]
         options = re.findall(r"Option \d:.*", reply_content)
 
+        # Extract the alttext and options from the response
+        #alttext = reply_content.split("Alt Img Text")[0]
+        #altoptions = re.findall(r"Alt Img Text \d:.*", reply_content)
+        #print (altoptions)
+        
         # Update the button messages and states
         button_messages = {}
         for i, option in enumerate(options):
@@ -123,11 +177,60 @@ def home():
     session['message_history'] = message_history
     session['button_messages'] = button_messages
 
-    # Generate an image based on the chat response text    
-    image_url = get_img(text)
+    # Generate an image based on the chat response text   
+    try:
+        # Extract the text from the response
+        scenetext = reply_content.split("Option 1")[0] #everything but options
+        # Extract text from between ]=- and Option 1
+        text = reply_content.split("]=-")[0].split("Option 1")[0] #hp and stuff
+        paragraph = reply_content.split("=-")[1].split("Option 1:")[0].strip() #words for scene
+    except IndexError:
+        print("Error: 'Option 1' or ']=-'' not found in reply_content")
+        # Handle the error here (e.g. assign default values to text and scenetext)    
+
+    
+    #img_url = get_img(text)
+    
+    print("paragraph")
+    print(paragraph)
+    print("scenetext")
+    print(scenetext)
+    print("---")
+    print("text")
+    print(text)
+    
+    data = text.split('=')[1]
+
+    values = data.split()
+    if len(values) == 8:
+        # assign variables to each value
+        hp, move, terrain, weather, time, year, planet, inside = values
+
+        # print the variables
+        print("HP:", hp)
+        print("MOVE:", move)
+        print("TERRAIN:", terrain)
+        print("WEATHER:", weather)
+        print("TIME:", time)
+        print("YEAR:", year)
+        print("PLANET:", planet)
+        print("INSIDE:", inside)
+    else:
+        print("Error: Data string does not contain exactly 8 values.")
+        print(len(values))
+        print(values)
+    
+    mine = paragraph + f" The weather is {weather}, in the {time}, of the year {year} on the planet {planet} with a {terrain} terrain."
+    img_url = get_img(mine)
+    print(mine)
+    
+    #print(img_url)
+    #image_url = image_url["images"][0]
+    #print(image_url)
+    
 
     # Render the template with the updated information
-    return render_template('home.html', title=title, text=text, image_url=image_url, button_messages=button_messages, button_states=button_states, message=message)
+    return render_template('home.html', title=title, text=text, image_url=img_url, button_messages=button_messages, button_states=button_states, message=message,paragraph=paragraph)
 
 # Run the Flask app
 if __name__ == '__main__':

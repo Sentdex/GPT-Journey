@@ -5,11 +5,12 @@
     <!-- Include Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 </head>
-<body>
+<body style="background-color: #000; color: white;">
     <div class="container">
-        <h1 class="mt-5">{{ title }}</h1>
-        <img src="{{ image_url }}" class="img-fluid" alt="My Image">
-        <p>{{ text }}</p>
+       <center> <h1 class="mt-5">{{ title }}</h1></center>
+        <center><img src="data:img/png;base64,{{ image_url }}" class="img-fluid" alt="My Image"></center>
+        <center><p>{{ text }}]=-</p><center>
+		<p>{{ paragraph }}</p>
         {% for button_name, message in button_messages.items() %}
             <form method="POST">
                 <div class="mb-2">
